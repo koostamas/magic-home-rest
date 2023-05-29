@@ -87,6 +87,14 @@ Change the color of a magic-home device, by it's IP address.
 
 **Code** : `200 OK`
 
+**Content example**
+
+```json5
+{
+  "success": true
+}
+```
+
 ### Turn on/off
 
 Change the power state of a magic-home device, by it's IP address.
@@ -118,6 +126,14 @@ Change the power state of a magic-home device, by it's IP address.
 **Condition** : Power commands were sent
 
 **Code** : `200 OK`
+
+**Content example**
+
+```json5
+{
+  "success": true
+}
+```
 
 ### Activate an effect
 
@@ -154,4 +170,12 @@ See [this repository](https://github.com/jangxx/node-magichome#built-in-patterns
 **Condition** : Effect commands were sent
 
 **Code** : `200 OK`
+
+**Content example**
+
+```json5
+{
+  "success": true
+}
+```
 

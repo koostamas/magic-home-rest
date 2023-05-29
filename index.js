@@ -3,6 +3,8 @@ const express = require("express");
 
 const PORT = process.env.PORT || 3000;
 
+const successMessage = {success: true};
+
 // Functions
 
 const hexToRgb = (hex) => {
@@ -101,7 +103,7 @@ app.post("/api/color", (req, res) => {
             wait_for_reply: false
         });
         control.setColorWithBrightness(r, g, b, brightness)
-            .then(() => res.sendStatus('200'))
+            .then(() => res.status(200).send(successMessage))
             .catch(err => res.status(500).send(err.message));
 
     } catch (e) {
@@ -128,7 +130,7 @@ app.post("/api/power", (req, res) => {
             wait_for_reply: false,
         })
         control.setPower(power)
-            .then(() => res.sendStatus('200'))
+            .then(() => res.status(200).send(successMessage))
             .catch(err => res.status(500).send(err.message));
 
     } catch (e) {
@@ -159,7 +161,7 @@ app.post("/api/effect", (req, res) => {
             wait_for_reply: false,
         })
         control.setPattern(effect, speed)
-            .then(() => res.sendStatus('200'))
+            .then(() => res.status(200).send(successMessage))
             .catch(err => {
                 res.status(500).send(err.message)
             });
