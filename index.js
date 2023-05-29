@@ -3,33 +3,7 @@ const express = require("express");
 
 const PORT = process.env.PORT || 3000;
 
-let devices = [];
-
 // Functions
-
-const scanDevices = (timeout) => {
-    console.log(`Scanning for devices ... (${timeout}ms)`);
-    return Discovery.scan(timeout).then(d => {
-        devices = d;
-        const s = d.length == 1 ? "" : "s";
-        console.log(`Found ${d.length} device${s}`)
-        devices.forEach(element => {
-            console.log(element);
-        });
-    })
-}
-
-const getDevices = (id, address) => {
-    return devices.filter(device => (
-        (
-            id === undefined ||
-            device.id === id
-        ) &&
-        (
-            address === undefined ||
-            device.address === address)
-    ));
-}
 
 const hexToRgb = (hex) => {
 
@@ -48,14 +22,6 @@ const hexToRgb = (hex) => {
         }
         : null;
 }
-
-const onScan = () => {
-    scanDevices(60000).then(onScan, onScan);
-}
-
-// Scan devices and set interval to scan every minute
-
-scanDevices(5000).then(onScan, onScan);
 
 // Express
 
@@ -99,7 +65,6 @@ app.post("/api/color", (req, res) => {
 
         const color = req.body.color;
         const brightness = req.body.brightness ? req.body.brightness : 100;
-        const id = req.body.id;
         const address = req.body.address;
 
         if (typeof color === 'undefined') {
@@ -132,19 +97,10 @@ app.post("/api/color", (req, res) => {
             return;
         }
 
-        // Filter devices and loop over them to set color
-        const localDevices = getDevices(id, address)
-
-        const promises = [];
-
-        localDevices.forEach(device => {
-            const control = new Control(device.address, {
-                wait_for_reply: false
-            });
-            promises.push(control.setColorWithBrightness(r, g, b, brightness));
-        })
-
-        Promise.all(promises)
+        const control = new Control(address, {
+            wait_for_reply: false
+        });
+        control.setColorWithBrightness(r, g, b, brightness)
             .then(() => res.sendStatus('200'))
             .catch(err => res.status(500).send(err.message));
 
@@ -159,8 +115,6 @@ app.post("/api/color", (req, res) => {
 app.post("/api/power", (req, res) => {
 
     try {
-
-        const id = req.body.id;
         const address = req.body.address;
         const power = req.body.power;
 
@@ -170,19 +124,10 @@ app.post("/api/power", (req, res) => {
             return;
         }
 
-        // Filter devices and loop over them to set power
-        const localDevices = getDevices(id, address)
-
-        const promises = [];
-
-        localDevices.forEach(device => {
-            const control = new Control(device.address, {
-                wait_for_reply: false,
-            })
-            promises.push(control.setPower(power));
+        const control = new Control(address, {
+            wait_for_reply: false,
         })
-
-        Promise.all(promises)
+        control.setPower(power)
             .then(() => res.sendStatus('200'))
             .catch(err => res.status(500).send(err.message));
 
@@ -196,7 +141,6 @@ app.post("/api/power", (req, res) => {
 app.post("/api/effect", (req, res) => {
     try {
 
-        const id = req.body.id;
         const address = req.body.address;
         const effect = req.body.effect;
         speed = req.body.speed;
@@ -211,19 +155,10 @@ app.post("/api/effect", (req, res) => {
             speed = 100;
         }
 
-        // Filter devices and loop over them to ativate effet
-        const localDevices = getDevices(id, address)
-
-        const promises = [];
-
-        localDevices.forEach(device => {
-            const control = new Control(device.address, {
-                wait_for_reply: false,
-            })
-            promises.push(control.setPattern(effect, speed));
+        const control = new Control(address, {
+            wait_for_reply: false,
         })
-
-        Promise.all(promises)
+        control.setPattern(effect, speed)
             .then(() => res.sendStatus('200'))
             .catch(err => {
                 res.status(500).send(err.message)
@@ -233,31 +168,20 @@ app.post("/api/effect", (req, res) => {
     }
 });
 
-// Devices endpoint
-app.get("/api/devices", (req, res) => {
-    res.json(devices);
-})
-
 // Device endpoint
-app.get("/api/device/:id", (req, res) => {
+// This is a POST endpoint, because IP can't be put in the url, so it has to be in the body,
+// but some clients do not support sending a body with GET requests (looking at you, Angular)
+app.post("/api/device", (req, res) => {
 
-    const id = req.params.id;
+    const address = req.body.address;
 
-    if (typeof id === 'undefined') {
+    if (typeof address === 'undefined') {
 
-        res.status(500).send(`'id' must be defined`);
+        res.status(500).send(`'address' must be defined`);
         return;
     }
 
-    const device = devices.find(element => element.id === id);
-
-    if (device === undefined) {
-
-        res.status(500).send(`No device with id ${id} was found`);
-        return;
-    }
-
-    new Control(device.address)
+    new Control(address)
         .queryState()
         .then(state => res.json(state))
         .catch(err => res.status(500).send(err));
