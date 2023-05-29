@@ -1,9 +1,12 @@
 
 # Magic-Home REST API
 
-![Docker Image Size (latest by date)](https://img.shields.io/docker/image-size/casperverswijvelt/magic-home-rest) ![Docker Pulls](https://img.shields.io/docker/pulls/casperverswijvelt/magic-home-rest) ![example workflow](https://github.com/CasperVerswijvelt/magic-home-rest/actions/workflows/build-docker.yml/badge.svg)
+![Docker Image Size (latest by date)](https://img.shields.io/docker/image-size/koostamas/magic-home-rest) ![Docker Pulls](https://img.shields.io/docker/pulls/koostamas/magic-home-rest)
 
 Simple REST API to control magic-home lights on the same network, built with [magic-home](https://github.com/jangxx/node-magichome) and [express](https://expressjs.com/).
+
+The difference to the original project is that this API doesn't use device id's and automatic discovery (which were not working well for me).
+Instead, it uses the device ip to control devices (the underlying library uses ip's as well), so you should set up static addresses in your DHCP server for your Magic Home devices. 
 
 ## How to run
 
@@ -21,37 +24,13 @@ Simple REST API to control magic-home lights on the same network, built with [ma
 
 ## API
 
-### Get devices
-
-Gets a list of magic-home devices on the network
-
-**URL** : `/api/devices/`
-
-**Method** : `GET`
-
-#### Success Response
-
-**Code** : `200 OK`
-
-**Content example**
-
-```json
-[
-  {
-    "address": "192.168.69.198",
-    "id": "F4CFA2120867",
-    "model": "AK001-ZJ2101"
-  }
-]
-```
-
 ### Get device state
 
-Gets a the state of a magic-home device, by it's id
+Gets a the state of a magic-home device, by it's IP address
 
-**URL** : `/api/device/:id`
+**URL** : `/api/device`
 
-**Method** : `GET`
+**Method** : `POST`
 
 #### Success Response
 
@@ -76,7 +55,7 @@ Gets a the state of a magic-home device, by it's id
 ```
 ### Change color
 
-Change the color of a magic-home device, by it's address or id.
+Change the color of a magic-home device, by it's IP address.
 
 **URL** : `/api/color/`
 
@@ -84,12 +63,9 @@ Change the color of a magic-home device, by it's address or id.
 
 **Data constraints**
 
-If no id or address is provided, all lights on the network will receive this change.
-
 ```json5
 {
-    "id": "id of magic-home device, string, optional",
-    "address": "address of magic-home device, string, optional",
+    "address": "address of magic-home device, string, required",
     "color": "color to change to, string (hex) or number (decimal), required",
     "brightness": "brightness to adjust the color with, number, optional"
 }
@@ -99,7 +75,6 @@ If no id or address is provided, all lights on the network will receive this cha
 
 ```json5
 {
-    "id": "F4CFA2120867",
     "address": "192.168.69.198",
     "color": "#FF0000", // or "FF0000" or 16711680
     "brightness": "100"
@@ -114,7 +89,7 @@ If no id or address is provided, all lights on the network will receive this cha
 
 ### Turn on/off
 
-Change the power state of a magic-home device, by it's address or id.
+Change the power state of a magic-home device, by it's IP address.
 
 **URL** : `/api/power/`
 
@@ -122,12 +97,9 @@ Change the power state of a magic-home device, by it's address or id.
 
 **Data constraints**
 
-If no id or address is provided, all lights on the network will receive this change.
-
 ```json5
 {
-    "id": "id of magic-home device, string, optional",
-    "address": "address of magic-home device, string, optional",
+    "address": "address of magic-home device, string, required",
     "power": "power state to set, required"
 }
 ```
@@ -136,7 +108,6 @@ If no id or address is provided, all lights on the network will receive this cha
 
 ```json5
 {
-    "id": "F4CFA2120867",
     "address": "192.168.69.198",
     "power": false
 }
@@ -150,7 +121,7 @@ If no id or address is provided, all lights on the network will receive this cha
 
 ### Activate an effect
 
-Activate an effect on a magic-home device, by it's address or id.
+Activate an effect on a magic-home device, by it's IP address.
 
 **URL** : `/api/effect/`
 
@@ -158,14 +129,11 @@ Activate an effect on a magic-home device, by it's address or id.
 
 **Data constraints**
 
-If no id or address is provided, all lights on the network will receive this change.
-
 See [this repository](https://github.com/jangxx/node-magichome#built-in-patterns) for a list of patterns.
 
 ```json5
 {
-    "id": "id of magic-home device, string, optional",
-    "address": "address of magic-home device, string, optional",
+    "address": "address of magic-home device, string, required",
     "effect": "effect pattern to set, required",
     "speed": "speed of the effect, number of 1 - 100, optional"
 }
@@ -175,7 +143,6 @@ See [this repository](https://github.com/jangxx/node-magichome#built-in-patterns
 
 ```json5
 {
-    "id": "F4CFA2120867",
     "address": "192.168.69.198",
     "effect": "seven_color_cross_fade",
     "speed": 50
